@@ -34,7 +34,7 @@ export class ForbiddenError extends AppError {
   }
 }
 
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
+export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({ error: err.message });
     return;
