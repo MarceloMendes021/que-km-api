@@ -4,25 +4,23 @@ import { NotFoundError } from "../middleware/errorHandler";
 export interface UserProfile {
   id: string;
   clerk_id: string;
-  name: string;
+  display_name: string;
   email: string;
   phone: string | null;
-  vehicle_plate: string | null;
+  avatar_url: string | null;
   created_at: Date;
 }
 
-export async function findOrCreateUser(clerkId: string, name: string, email: string): Promise<UserProfile> {
+export async function findOrCreateUser(clerkId: string, displayName: string, email: string): Promise<UserProfile> {
   const existing = await db.query<UserProfile>("SELECT * FROM users WHERE clerk_id = $1", [clerkId]);
 
-  if (existing.rows[0]) {
-    return existing.rows[0];
-  }
+  if (existing.rows[0]) return existing.rows[0];
 
   const created = await db.query<UserProfile>(
-    `INSERT INTO users (clerk_id, name, email)
+    `INSERT INTO users (clerk_id, display_name, email)
      VALUES ($1, $2, $3)
      RETURNING *`,
-    [clerkId, name, email],
+    [clerkId, displayName, email],
   );
 
   return created.rows[0];
@@ -38,7 +36,7 @@ export async function getUserProfile(clerkId: string): Promise<UserProfile> {
   return result.rows[0];
 }
 
-export async function updateUserProfile(clerkId: string, data: Partial<Pick<UserProfile, "name" | "phone" | "vehicle_plate">>): Promise<UserProfile> {
+export async function updateUserProfile(clerkId: string, data: Partial<Pick<UserProfile, "display_name" | "phone" | "avatar_url">>): Promise<UserProfile> {
   const fields = Object.keys(data);
   const values = Object.values(data);
 

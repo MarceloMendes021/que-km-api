@@ -6,9 +6,9 @@ import { getUserProfile, updateUserProfile } from "../services/userService";
 const router = Router();
 
 const updateProfileSchema = z.object({
-  name: z.string().min(2).optional(),
+  display_name: z.string().min(2).optional(),
   phone: z.string().optional(),
-  vehicle_plate: z.string().optional(),
+  avatar_url: z.string().url().optional(),
 });
 
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
