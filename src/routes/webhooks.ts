@@ -23,7 +23,7 @@ router.post("/clerk", async (req: Request, res: Response) => {
 
   try {
     const wh = new Webhook(secret);
-    const payload = wh.verify(JSON.stringify(req.body), {
+    const payload = wh.verify(req.body, {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
