@@ -13,4 +13,4 @@ export const db = new Pool({
 
 db.connect()
   .then(() => console.log("✅ Banco de dados conectado"))
-  .catch((err) => console.error("❌ Erro ao conectar:", err));
+  .catch((err: Error) => console.error("❌ Erro ao conectar:", err));
