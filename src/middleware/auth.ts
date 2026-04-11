@@ -1,6 +1,7 @@
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 import { Request, Response, NextFunction } from "express";
 import { UnauthorizedError } from "./errorHandler";
+import { db } from "../db/client";
 
 declare global {
   namespace Express {
@@ -25,7 +26,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
   try {
     const payload = await clerk.verifyToken(token);
-    req.userId = payload.sub;
+    const result = await db.query("SELECT id FROM users WHERE clerk_id = $1", [payload.sub]);
+    req.userId = result.rows[0]?.id;
     next();
   } catch {
     next(new UnauthorizedError());
