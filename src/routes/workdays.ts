@@ -119,7 +119,12 @@ router.patch("/:id/finish", requireAuth, async (req: Request, res: Response, nex
       );
     }
 
-    res.json(result.rows[0]);
+    res.json({
+      ...result.rows[0],
+      expenses_fuel: data.expenses_fuel,
+      expenses_food: data.expenses_food,
+      expenses_other: data.expenses_other,
+    });
   } catch (error) {
     next(error);
   }
