@@ -1,4 +1,5 @@
 import { createClerkClient } from "@clerk/clerk-sdk-node";
+import { verifyToken } from "@clerk/backend";
 import { Request, Response, NextFunction } from "express";
 import { UnauthorizedError } from "./errorHandler";
 import { db } from "../db/client";
@@ -25,11 +26,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   const token = authHeader.split(" ")[1];
 
   try {
-    const payload = await clerk.verifyToken(token);
+    const payload = await verifyToken(token, {
+      issuer: "https://square-phoenix-6.clerk.accounts.dev",
+      secretKey: process.env.CLERK_SECRET_KEY!,
+      clockSkewInMs: 60000,
+    });
     const result = await db.query("SELECT id FROM users WHERE clerk_id = $1", [payload.sub]);
     req.userId = result.rows[0]?.id;
     next();
-  } catch {
+  } catch (error) {
     next(new UnauthorizedError());
   }
 }

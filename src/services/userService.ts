@@ -27,7 +27,7 @@ export async function findOrCreateUser(clerkId: string, displayName: string, ema
 }
 
 export async function getUserProfile(clerkId: string): Promise<UserProfile> {
-  const result = await db.query<UserProfile>("SELECT * FROM users WHERE clerk_id = $1", [clerkId]);
+  const result = await db.query<UserProfile>("SELECT * FROM users WHERE id = $1", [clerkId]);
 
   if (!result.rows[0]) {
     throw new NotFoundError("Usuário não encontrado");
@@ -48,7 +48,7 @@ export async function updateUserProfile(clerkId: string, data: Partial<Pick<User
 
   const result = await db.query<UserProfile>(
     `UPDATE users SET ${setClause}, updated_at = NOW()
-     WHERE clerk_id = $${fields.length + 1}
+     WHERE id = $${fields.length + 1}
      RETURNING *`,
     [...values, clerkId],
   );
