@@ -7,7 +7,7 @@ const router = Router();
 
 const updateProfileSchema = z.object({
   display_name: z.string().min(2).optional(),
-  phone: z.string().optional(),
+  phone: z.string().nullable().optional(),
   avatar_url: z.string().url().optional(),
 });
 

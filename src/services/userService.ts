@@ -37,25 +37,30 @@ export async function getUserProfile(clerkId: string): Promise<UserProfile> {
 }
 
 export async function updateUserProfile(clerkId: string, data: Partial<Pick<UserProfile, "display_name" | "phone" | "avatar_url">>): Promise<UserProfile> {
-  const fields = Object.keys(data);
-  const values = Object.values(data);
+  try {
+    const fields = Object.keys(data);
+    const values = Object.values(data);
 
-  if (fields.length === 0) {
-    throw new NotFoundError("Nenhum campo para atualizar");
+    if (fields.length === 0) {
+      throw new NotFoundError("Nenhum campo para atualizar");
+    }
+
+    const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
+
+    const result = await db.query<UserProfile>(
+      `UPDATE users SET ${setClause}, updated_at = NOW()
+       WHERE id = $${fields.length + 1}
+       RETURNING *`,
+      [...values, clerkId],
+    );
+
+    if (!result.rows[0]) {
+      throw new NotFoundError("Usuário não encontrado");
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.log("Update error:", error);
+    throw error;
   }
-
-  const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
-
-  const result = await db.query<UserProfile>(
-    `UPDATE users SET ${setClause}, updated_at = NOW()
-     WHERE id = $${fields.length + 1}
-     RETURNING *`,
-    [...values, clerkId],
-  );
-
-  if (!result.rows[0]) {
-    throw new NotFoundError("Usuário não encontrado");
-  }
-
-  return result.rows[0];
 }
