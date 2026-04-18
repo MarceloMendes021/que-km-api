@@ -4,6 +4,17 @@ import { findOrCreateUser } from "../services/userService";
 
 const router = Router();
 
+interface ClerkWebhookPayload {
+  type: string;
+  data: {
+    id: string;
+    email_addresses: Array<{ email_address: string }>;
+    first_name: string;
+    last_name: string;
+    image_url: string;
+  };
+}
+
 router.post("/clerk", async (req: Request, res: Response) => {
   const secret = process.env.CLERK_WEBHOOK_SECRET;
 
@@ -27,7 +38,7 @@ router.post("/clerk", async (req: Request, res: Response) => {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
-    }) as any;
+    }) as ClerkWebhookPayload;
 
     if (payload.type === "user.created") {
       const { id, first_name, last_name, email_addresses } = payload.data;
