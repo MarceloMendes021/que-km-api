@@ -53,4 +53,62 @@ router.post("/", requireAuth, async (req: Request, res: Response, next: NextFunc
   }
 });
 
+router.delete("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(`DELETE FROM expenses WHERE id = $1 AND user_id = $2 RETURNING id`, [id, req.userId]);
+
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: "Despesa não encontrada" });
+    }
+
+    res.json({ deleted: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const updateExpenseSchema = z.object({
+  category: z.enum(["fuel", "food", "maintenance", "fine", "rental", "financing", "insurance", "other"]).optional(),
+  amount: z.number().min(0.01).optional(),
+  description: z.string().optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  payment_method: z.enum(["pix", "credit", "debit", "cash"]).nullable().optional(),
+});
+
+router.patch("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const data = updateExpenseSchema.parse(req.body);
+
+    const fields = Object.keys(data);
+    const values = Object.values(data);
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: "Nenhum campo para atualizar" });
+    }
+
+    const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
+
+    const result = await db.query(
+      `UPDATE expenses SET ${setClause}
+       WHERE id = $${fields.length + 1} AND user_id = $${fields.length + 2}
+       RETURNING *`,
+      [...values, id, req.userId],
+    );
+
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: "Despesa não encontrada" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

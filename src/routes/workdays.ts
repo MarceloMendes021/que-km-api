@@ -160,4 +160,24 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
   }
 });
 
+router.delete("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const workday = await db.query(`SELECT id FROM workdays WHERE id = $1 AND user_id = $2`, [id, req.userId]);
+
+    if (!workday.rows[0]) {
+      return res.status(404).json({ error: "Jornada não encontrada" });
+    }
+
+    await db.query(`DELETE FROM expenses WHERE workday_id = $1`, [id]);
+
+    await db.query(`DELETE FROM workdays WHERE id = $1`, [id]);
+
+    res.json({ deleted: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
