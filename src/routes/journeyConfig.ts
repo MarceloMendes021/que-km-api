@@ -6,12 +6,15 @@ import { db } from "../db/client";
 const router = Router();
 
 const journeyConfigSchema = z.object({
-  car_model: z.string().min(2).optional(),
-  fuel_type: z.enum(["gasolina", "etanol", "gnv", "diesel"]).optional(),
-  avg_consumption: z.number().min(0).optional(),
-  month_goal: z.number().min(0).optional(),
-  planned_days: z.number().min(1).max(31).optional(),
-  min_value_per_km: z.number().min(0).optional(),
+  car_model: z.string().min(2).nullable().optional(),
+  fuel_type: z.enum(["gasolina", "etanol", "gnv", "diesel"]).nullable().optional(),
+  avg_consumption: z
+    .union([z.number(), z.string().transform(Number)])
+    .nullable()
+    .optional(),
+  month_goal: z.number().min(0).nullable().optional(),
+  planned_days: z.number().min(1).max(31).nullable().optional(),
+  min_value_per_km: z.number().nullable().optional(),
 });
 
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
