@@ -60,7 +60,7 @@ export async function updateUserProfile(clerkId: string, data: Partial<Pick<User
 
     return result.rows[0];
   } catch (error) {
-    console.log("Update error:", error);
+    console.error("Update error:", error);
     throw error;
   }
 }
