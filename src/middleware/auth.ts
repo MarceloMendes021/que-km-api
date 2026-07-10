@@ -27,7 +27,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
   try {
     const payload = await verifyToken(token, {
-      issuer: "https://square-phoenix-6.clerk.accounts.dev",
+      issuer: process.env.CLERK_ISSUER_URL!,
       secretKey: process.env.CLERK_SECRET_KEY!,
       clockSkewInMs: 60000,
     });
