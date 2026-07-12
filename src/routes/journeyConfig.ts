@@ -7,7 +7,7 @@ const router = Router();
 
 const journeyConfigSchema = z.object({
   car_model: z.string().min(2).nullable().optional(),
-  fuel_type: z.enum(["gasolina", "etanol", "gnv", "diesel"]).nullable().optional(),
+  fuel_type: z.enum(["gasolina", "etanol", "flex", "gnv", "diesel"]).nullable().optional(),
   avg_consumption: z
     .union([z.number(), z.string().transform(Number)])
     .nullable()
