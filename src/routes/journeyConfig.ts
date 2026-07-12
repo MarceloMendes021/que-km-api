@@ -14,7 +14,10 @@ const journeyConfigSchema = z.object({
     .optional(),
   month_goal: z.number().min(0).nullable().optional(),
   planned_days: z.number().min(1).max(31).nullable().optional(),
-  min_value_per_km: z.number().nullable().optional(),
+  min_value_per_km: z
+    .union([z.number(), z.string().transform(Number)])
+    .nullable()
+    .optional(),
 });
 
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
