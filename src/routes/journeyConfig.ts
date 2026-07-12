@@ -6,7 +6,7 @@ import { db } from "../db/client";
 const router = Router();
 
 const journeyConfigSchema = z.object({
-  car_model: z.string().min(2).nullable().optional(),
+  car_model: z.string().nullable().optional(),
   fuel_type: z.enum(["gasolina", "etanol", "flex", "gnv", "diesel"]).nullable().optional(),
   avg_consumption: z
     .union([z.number(), z.string().transform(Number)])
