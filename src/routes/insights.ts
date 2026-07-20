@@ -5,6 +5,30 @@ import { BadRequestError } from "../middleware/errorHandler";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /api/insights:
+ *   get:
+ *     summary: Retorna métricas financeiras do mês
+ *     tags: [Insights]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 2026-07
+ *         description: Mês no formato YYYY-MM
+ *     responses:
+ *       200:
+ *         description: Métricas calculadas com sucesso
+ *       400:
+ *         description: Mês não informado
+ *       401:
+ *         description: Não autorizado
+ */
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { month } = req.query;

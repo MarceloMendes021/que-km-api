@@ -20,6 +20,33 @@ const finishWorkdaySchema = z.object({
   expenses_other: z.number().min(0).default(0),
 });
 
+/**
+ * @swagger
+ * /api/workdays:
+ *   post:
+ *     summary: Inicia uma nova jornada
+ *     tags: [Workdays]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [start_odometer]
+ *             properties:
+ *               start_odometer:
+ *                 type: number
+ *                 example: 45230
+ *     responses:
+ *       201:
+ *         description: Jornada iniciada
+ *       400:
+ *         description: Já existe uma jornada ativa
+ *       401:
+ *         description: Não autorizado
+ */
 router.post("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { start_odometer } = startWorkdaySchema.parse(req.body);
@@ -47,6 +74,20 @@ router.post("/", requireAuth, async (req: Request, res: Response, next: NextFunc
   }
 });
 
+/**
+ * @swagger
+ * /api/workdays/active:
+ *   get:
+ *     summary: Retorna a jornada ativa do usuário
+ *     tags: [Workdays]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Jornada ativa ou null
+ *       401:
+ *         description: Não autorizado
+ */
 router.get("/active", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await db.query(
@@ -61,6 +102,59 @@ router.get("/active", requireAuth, async (req: Request, res: Response, next: Nex
   }
 });
 
+/**
+ * @swagger
+ * /api/workdays/{id}/finish:
+ *   patch:
+ *     summary: Encerra a jornada com ganhos e despesas
+ *     tags: [Workdays]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [end_odometer]
+ *             properties:
+ *               end_odometer:
+ *                 type: number
+ *                 example: 45530
+ *               earnings_uber:
+ *                 type: number
+ *                 example: 150.00
+ *               earnings_99:
+ *                 type: number
+ *                 example: 80.00
+ *               earnings_particular:
+ *                 type: number
+ *                 example: 0
+ *               expenses_fuel:
+ *                 type: number
+ *                 example: 60.00
+ *               expenses_food:
+ *                 type: number
+ *                 example: 20.00
+ *               expenses_other:
+ *                 type: number
+ *                 example: 0
+ *     responses:
+ *       200:
+ *         description: Jornada encerrada
+ *       400:
+ *         description: KM final menor que KM inicial
+ *       404:
+ *         description: Jornada não encontrada
+ *       401:
+ *         description: Não autorizado
+ */
 router.patch("/:id/finish", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -130,6 +224,30 @@ router.patch("/:id/finish", requireAuth, async (req: Request, res: Response, nex
   }
 });
 
+/**
+ * @swagger
+ * /api/workdays:
+ *   get:
+ *     summary: Lista jornadas finalizadas do mês
+ *     tags: [Workdays]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 2026-07
+ *         description: Mês no formato YYYY-MM
+ *     responses:
+ *       200:
+ *         description: Lista de jornadas
+ *       400:
+ *         description: Mês não informado
+ *       401:
+ *         description: Não autorizado
+ */
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { month } = req.query;
@@ -160,6 +278,28 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
   }
 });
 
+/**
+ * @swagger
+ * /api/workdays/{id}:
+ *   delete:
+ *     summary: Remove uma jornada e suas despesas
+ *     tags: [Workdays]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Jornada removida
+ *       404:
+ *         description: Jornada não encontrada
+ *       401:
+ *         description: Não autorizado
+ */
 router.delete("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

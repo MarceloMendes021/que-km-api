@@ -14,6 +14,30 @@ const createExpenseSchema = z.object({
   payment_method: z.enum(["pix", "credit", "debit", "cash"]).optional(),
 });
 
+/**
+ * @swagger
+ * /api/expenses:
+ *   get:
+ *     summary: Lista despesas do mês
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 2026-07
+ *         description: Mês no formato YYYY-MM
+ *     responses:
+ *       200:
+ *         description: Lista de despesas
+ *       400:
+ *         description: Mês não informado
+ *       401:
+ *         description: Não autorizado
+ */
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { month } = req.query;
@@ -36,6 +60,43 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
   }
 });
 
+/**
+ * @swagger
+ * /api/expenses:
+ *   post:
+ *     summary: Adiciona uma nova despesa
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [category, amount, date]
+ *             properties:
+ *               category:
+ *                 type: string
+ *                 enum: [fuel, food, maintenance, fine, rental, financing, insurance, other]
+ *               amount:
+ *                 type: number
+ *                 example: 150.00
+ *               description:
+ *                 type: string
+ *                 example: Gasolina posto Shell
+ *               date:
+ *                 type: string
+ *                 example: 2026-07-20
+ *               payment_method:
+ *                 type: string
+ *                 enum: [pix, credit, debit, cash]
+ *     responses:
+ *       201:
+ *         description: Despesa criada
+ *       401:
+ *         description: Não autorizado
+ */
 router.post("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = createExpenseSchema.parse(req.body);
@@ -53,6 +114,28 @@ router.post("/", requireAuth, async (req: Request, res: Response, next: NextFunc
   }
 });
 
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   delete:
+ *     summary: Remove uma despesa
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Despesa removida
+ *       404:
+ *         description: Despesa não encontrada
+ *       401:
+ *         description: Não autorizado
+ */
 router.delete("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -80,6 +163,47 @@ const updateExpenseSchema = z.object({
   payment_method: z.enum(["pix", "credit", "debit", "cash"]).nullable().optional(),
 });
 
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   patch:
+ *     summary: Atualiza uma despesa
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               category:
+ *                 type: string
+ *                 enum: [fuel, food, maintenance, fine, rental, financing, insurance, other]
+ *               amount:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 example: 2026-07-20
+ *               payment_method:
+ *                 type: string
+ *                 enum: [pix, credit, debit, cash]
+ *     responses:
+ *       200:
+ *         description: Despesa atualizada
+ *       404:
+ *         description: Despesa não encontrada
+ *       401:
+ *         description: Não autorizado
+ */
 router.patch("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

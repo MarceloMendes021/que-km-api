@@ -20,6 +20,20 @@ const journeyConfigSchema = z.object({
     .optional(),
 });
 
+/**
+ * @swagger
+ * /api/journey-config:
+ *   get:
+ *     summary: Retorna a configuração de veículo e metas do usuário
+ *     tags: [Journey Config]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Configuração encontrada
+ *       401:
+ *         description: Não autorizado
+ */
 router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await db.query("SELECT * FROM journey_configs WHERE user_id = $1", [req.userId]);
@@ -34,6 +48,45 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
   }
 });
 
+/**
+ * @swagger
+ * /api/journey-config:
+ *   put:
+ *     summary: Atualiza as configuração de veículo e metas do usuário
+ *     tags: [Journey Config]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               car_model:
+ *                 type: string
+ *                 example: Onix 1.0 2022
+ *               fuel_type:
+ *                 type: string
+ *                 enum: [gasolina, etanol, flex, gnv, diesel]
+ *               avg_consumption:
+ *                 type: number
+ *                 example: 10
+ *               month_goal:
+ *                 type: number
+ *                 example: 3000
+ *               planned_days:
+ *                 type: number
+ *                 example: 22
+ *               min_value_per_km:
+ *                 type: number
+ *                 example: 1.30
+ *     responses:
+ *       200:
+ *         description: Configuração atualizada
+ *       401:
+ *         description: Não autorizado
+ */
 router.put("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = journeyConfigSchema.parse(req.body);
