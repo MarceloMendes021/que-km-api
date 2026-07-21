@@ -320,4 +320,108 @@ router.delete("/:id", requireAuth, async (req: Request, res: Response, next: Nex
   }
 });
 
+const updateWorkdaySchema = z.object({
+  earnings_uber: z.number().min(0).optional(),
+  earnings_99: z.number().min(0).optional(),
+  earnings_particular: z.number().min(0).optional(),
+  expenses_fuel: z.number().min(0).optional(),
+  expenses_food: z.number().min(0).optional(),
+  expenses_other: z.number().min(0).optional(),
+});
+
+/**
+ * @swagger
+ * /api/workdays/{id}:
+ *   patch:
+ *     summary: Atualiza ganhos e despesas de uma jornada finalizada
+ *     tags: [Workdays]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               earnings_uber:
+ *                 type: number
+ *               earnings_99:
+ *                 type: number
+ *               earnings_particular:
+ *                 type: number
+ *               expenses_fuel:
+ *                 type: number
+ *               expenses_food:
+ *                 type: number
+ *               expenses_other:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Jornada atualizada
+ *       404:
+ *         description: Jornada não encontrada
+ *       401:
+ *         description: Não autorizado
+ */
+router.patch("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const data = updateWorkdaySchema.parse(req.body);
+
+    const workday = await db.query(`SELECT id FROM workdays WHERE id = $1 AND user_id = $2 AND status = 'finished'`, [id, req.userId]);
+
+    if (!workday.rows[0]) {
+      throw new NotFoundError("Jornada não encontrada");
+    }
+
+    const result = await db.query(
+      `UPDATE workdays SET
+         earnings_uber = COALESCE($1, earnings_uber),
+         earnings_99 = COALESCE($2, earnings_99),
+         earnings_particular = COALESCE($3, earnings_particular),
+         updated_at = NOW()
+       WHERE id = $4 AND user_id = $5
+       RETURNING *`,
+      [data.earnings_uber, data.earnings_99, data.earnings_particular, id, req.userId],
+    );
+
+    if (data.expenses_fuel !== undefined) {
+      await db.query(`DELETE FROM expenses WHERE workday_id = $1 AND category = 'fuel'`, [id]);
+      await db.query(
+        `INSERT INTO expenses (user_id, workday_id, category, amount, date)
+     VALUES ($1, $2, 'fuel', $3, (SELECT date FROM workdays WHERE id = $2))`,
+        [req.userId, id, data.expenses_fuel],
+      );
+    }
+
+    if (data.expenses_food !== undefined) {
+      await db.query(`DELETE FROM expenses WHERE workday_id = $1 AND category = 'food'`, [id]);
+      await db.query(
+        `INSERT INTO expenses (user_id, workday_id, category, amount, date)
+     VALUES ($1, $2, 'food', $3, (SELECT date FROM workdays WHERE id = $2))`,
+        [req.userId, id, data.expenses_food],
+      );
+    }
+
+    if (data.expenses_other !== undefined) {
+      await db.query(`DELETE FROM expenses WHERE workday_id = $1 AND category = 'other'`, [id]);
+      await db.query(
+        `INSERT INTO expenses (user_id, workday_id, category, amount, date)
+     VALUES ($1, $2, 'other', $3, (SELECT date FROM workdays WHERE id = $2))`,
+        [req.userId, id, data.expenses_other],
+      );
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
