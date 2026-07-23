@@ -258,17 +258,20 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
 
     const result = await db.query(
       `SELECT 
-         w.*,
-         (w.earnings_uber + w.earnings_99 + w.earnings_particular) as total_earnings,
-         (end_odometer - start_odometer) as km_driven,
-         COALESCE(SUM(e.amount), 0) as total_expenses
-       FROM workdays w
-       LEFT JOIN expenses e ON e.workday_id = w.id
-       WHERE w.user_id = $1
-         AND w.status = 'finished'
-         AND TO_CHAR(w.date, 'YYYY-MM') = $2
-       GROUP BY w.id
-       ORDER BY w.date DESC`,
+     w.*,
+     (w.earnings_uber + w.earnings_99 + w.earnings_particular) as total_earnings,
+     (end_odometer - start_odometer) as km_driven,
+     COALESCE(SUM(e.amount), 0) as total_expenses,
+     COALESCE(SUM(CASE WHEN e.category = 'fuel' THEN e.amount ELSE 0 END), 0) as expenses_fuel,
+     COALESCE(SUM(CASE WHEN e.category = 'food' THEN e.amount ELSE 0 END), 0) as expenses_food,
+     COALESCE(SUM(CASE WHEN e.category = 'other' THEN e.amount ELSE 0 END), 0) as expenses_other
+   FROM workdays w
+   LEFT JOIN expenses e ON e.workday_id = w.id
+   WHERE w.user_id = $1
+     AND w.status = 'finished'
+     AND TO_CHAR(w.date, 'YYYY-MM') = $2
+   GROUP BY w.id
+   ORDER BY w.date DESC`,
       [req.userId, month],
     );
 
