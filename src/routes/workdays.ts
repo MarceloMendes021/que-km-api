@@ -63,7 +63,7 @@ router.post("/", requireAuth, async (req: Request, res: Response, next: NextFunc
 
     const result = await db.query(
       `INSERT INTO workdays (user_id, date, start_odometer, status)
-       VALUES ($1, CURRENT_DATE, $2, 'active')
+       VALUES ($1, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date, $2, 'active')
        RETURNING *`,
       [req.userId, start_odometer],
     );

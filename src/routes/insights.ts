@@ -92,7 +92,7 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
 
     const [year, monthNum] = month.split("-").map(Number);
     const daysInMonth = new Date(year, monthNum, 0).getDate();
-    const today = new Date().getDate();
+    const today = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).getDate();
     const daysRemainingInMonth = Math.max(daysInMonth - today, 0);
 
     const minValuePerKm = config ? parseFloat(config.min_value_per_km) : 0;
