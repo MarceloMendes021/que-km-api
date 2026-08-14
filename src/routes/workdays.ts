@@ -271,7 +271,7 @@ router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunct
      AND w.status = 'finished'
      AND TO_CHAR(w.date, 'YYYY-MM') = $2
    GROUP BY w.id
-   ORDER BY w.date DESC`,
+   ORDER BY w.date DESC, w.created_at DESC`,
       [req.userId, month],
     );
 
